@@ -1,0 +1,220 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.content }}",
+        "options": {
+          "systemMessage": "You are an assistant connected to the user's Obsidian vault. \nYou MUST ALWAYS use the obsidian tool for ANY request involving \nnotes, files, or Obsidian — even if you think you can answer \nfrom memory. Never reply about note content without calling \nthe tool first. Keep replies concise."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        48
+      ],
+      "id": "585142f8-cd12-4225-a237-32694b7b4494",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        256
+      ],
+      "id": "064edf0d-ade5-49c5-8664-979b09abc8fb",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ZBh2LpOrWTOebhZu",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "session"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        288,
+        256
+      ],
+      "id": "01c36cad-ba34-48d0-a7f6-6fb9b8ad828e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "event": "messageCreate",
+        "pattern": "every",
+        "additionalFields": {
+          "channelIds": "1444637784777425040"
+        }
+      },
+      "type": "n8n-nodes-discord-dnd.discordTriggerDnd",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        48
+      ],
+      "id": "94baeb15-0747-4652-8ced-9c0533035c26",
+      "name": "Discord Trigger DND",
+      "credentials": {
+        "discordApiDnd": {
+          "id": "8oXZyk0EXmNQx3CC",
+          "name": "Discord DND account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Mandatory tool. Use this tool to send your final text response directly back to the Discord channel so the user can read it. You must call this tool for every response.",
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1444637782483009579",
+          "mode": "list",
+          "cachedResultName": "harish's server",
+          "cachedResultUrl": "https://discord.com/channels/1444637782483009579"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1444637784777425040",
+          "mode": "list",
+          "cachedResultName": "general",
+          "cachedResultUrl": "https://discord.com/channels/1444637782483009579/1444637784777425040"
+        },
+        "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discordTool",
+      "typeVersion": 2,
+      "position": [
+        784,
+        112
+      ],
+      "id": "ee68e64f-5e12-432c-be92-689e1b4a6140",
+      "name": "Send a message in Discord",
+      "webhookId": "6221032b-8e2d-4e3d-b2af-f6fe0edee8bf",
+      "credentials": {
+        "discordBotApi": {
+          "id": "hc4m8ibzBMtbGtTc",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to create, append, write,read, or delete notes in the user's Obsidian vault. Call this whenever the user mentions a note, file, or anything to do with Obsidian. AND IF THE USER TOLD TO WRITE OR READ FROM THE NOTE, DO IT",
+        "method": "={{ $fromAI(\"action\", \"Strictly 'PUT' to create a note, 'POST' to append text, 'GET' to read a note, or 'DELETE' to remove one.\") }}",
+        "url": "=http://192.168.29.67:27123/vault/{{ encodeURIComponent($fromAI(\"path\", \"The filename ending in .md\")) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer fbf90535e80905fa7130ff2fe84a4bbf6c1ce98fd8830d0822ee9952ef364a59"
+            },
+            {
+              "name": "Content-Type",
+              "value": "text/markdown"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Content_Type', `The body content or text to insert inside the note.`, 'string') }}",
+        "body": "={{ $fromAI(\"content\", \"The full text content to write into the note.\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        352
+      ],
+      "id": "f75d45df-80f7-409b-af61-27c880b06dbc",
+      "name": "obsidian"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord Trigger DND": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Discord": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "obsidian": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2b39e685-21ba-4cd0-a823-8fca48dabe01",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51770ae37aedded82ed960ca290d7d75778ffe75f800d84c386cf13997187cce"
+  },
+  "nodeGroups": [],
+  "id": "2od1c6VlpqTAaQur",
+  "tags": []
+}
